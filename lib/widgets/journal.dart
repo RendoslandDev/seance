@@ -28,7 +28,6 @@ Future<void> showJournalComposer(
   String? sessionTitle,
   int? dayNumber,
 }) {
-  final controller = TextEditingController();
   return showModalBottomSheet<void>(
     context: context,
     backgroundColor: Palette.bg1,
@@ -37,107 +36,139 @@ Future<void> showJournalComposer(
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
-    builder: (ctx) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 38,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Palette.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+    builder: (_) => _Composer(
+      state: state,
+      sessionTitle: sessionTitle,
+      dayNumber: dayNumber,
+    ),
+  );
+}
+
+/// The composer sheet. It owns its text controller, so the controller lives
+/// until the sheet has finished closing (disposing it as soon as the sheet's
+/// future completed broke the closing animation).
+class _Composer extends StatefulWidget {
+  const _Composer({required this.state, this.sessionTitle, this.dayNumber});
+
+  final AppState state;
+  final String? sessionTitle;
+  final int? dayNumber;
+
+  @override
+  State<_Composer> createState() => _ComposerState();
+}
+
+class _ComposerState extends State<_Composer> {
+  final controller = TextEditingController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext ctx) {
+    final sessionTitle = widget.sessionTitle;
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Palette.border,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 20),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Text(
+                  'New reflection',
+                  style: TextStyle(
+                    fontFamily: AppType.serif,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w500,
+                    color: Palette.textHi,
+                  ),
+                ),
+              ),
+              if (sessionTitle != null) ...[
+                const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    'New reflection',
-                    style: TextStyle(
-                      fontFamily: AppType.serif,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w500,
-                      color: Palette.textHi,
-                    ),
-                  ),
-                ),
-                if (sessionTitle != null) ...[
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: _ContextPill(sessionTitle: sessionTitle),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  minLines: 4,
-                  maxLines: 8,
-                  textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(
-                    color: Palette.textHi,
-                    fontSize: 15.5,
-                    height: 1.45,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'What surfaced for you?',
-                    hintStyle: TextStyle(color: Palette.textLow, fontSize: 15),
-                    filled: true,
-                    fillColor: Palette.surface,
-                    contentPadding: const EdgeInsets.all(14),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: Palette.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: Palette.borderStrong),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      state.addJournalEntry(
-                        controller.text,
-                        sessionTitle: sessionTitle,
-                        dayNumber: dayNumber,
-                      );
-                      Navigator.of(ctx).pop();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Palette.textHi,
-                      side: BorderSide(color: Palette.borderStrong),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 13,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                    ),
-                    child: const Text('Save'),
-                  ),
+                  child: _ContextPill(sessionTitle: sessionTitle),
                 ),
               ],
-            ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                minLines: 4,
+                maxLines: 8,
+                textCapitalization: TextCapitalization.sentences,
+                style: const TextStyle(
+                  color: Palette.textHi,
+                  fontSize: 15.5,
+                  height: 1.45,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'What surfaced for you?',
+                  hintStyle: TextStyle(color: Palette.textLow, fontSize: 15),
+                  filled: true,
+                  fillColor: Palette.surface,
+                  contentPadding: const EdgeInsets.all(14),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Palette.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Palette.borderStrong),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton(
+                  onPressed: () {
+                    widget.state.addJournalEntry(
+                      controller.text,
+                      sessionTitle: sessionTitle,
+                      dayNumber: widget.dayNumber,
+                    );
+                    Navigator.of(ctx).pop();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Palette.textHi,
+                    side: BorderSide(color: Palette.borderStrong),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 13,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text('Save'),
+                ),
+              ),
+            ],
           ),
         ),
-      );
-    },
-  ).whenComplete(controller.dispose);
+      ),
+    );
+  }
 }
 
 class _ContextPill extends StatelessWidget {
@@ -299,10 +330,13 @@ class _JournalEntryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                // Date and practice label wrap rather than overflow on phones.
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(_formatDate(entry.createdAt), style: AppType.badge),
-                    const Spacer(),
                     if (entry.linkedToSession)
                       _ContextPill(sessionTitle: entry.sessionTitle!),
                   ],

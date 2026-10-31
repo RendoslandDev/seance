@@ -646,12 +646,11 @@ class VideoList extends StatelessWidget {
                         style: AppType.cardBody,
                       ),
                     ),
-                    SizedBox(
-                      height: 34,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                    // All categories stay visible; they wrap on phones.
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Wrap(
+                        runSpacing: 8,
                         children: [
                           FilterPill(
                             label: 'All',
@@ -681,7 +680,7 @@ class VideoList extends StatelessWidget {
                                 shape: BoxShape.circle,
                               ),
                             ),
-                          Text(status, style: AppType.badge),
+                          Flexible(child: Text(status, style: AppType.badge)),
                         ],
                       ),
                     ),

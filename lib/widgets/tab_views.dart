@@ -239,20 +239,28 @@ class _ProfileView extends StatelessWidget {
               style: AppType.cardBody,
             ),
             const SizedBox(height: 34),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                stat('${state.totalSessions}', 'SESSIONS'),
-                const SizedBox(width: 32),
-                stat('${state.activeDays}', 'DAYS'),
-                const SizedBox(width: 32),
-                stat('${state.streak}', 'STREAK'),
-                const SizedBox(width: 32),
-                stat(
-                  '${state.savedReadings.length + state.savedHymns.length}',
-                  'SAVED',
-                ),
-              ],
+            // Evenly spread, and never wider than the screen (small phones).
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Row(
+                children: [
+                  for (final (value, label) in [
+                    ('${state.totalSessions}', 'SESSIONS'),
+                    ('${state.activeDays}', 'DAYS'),
+                    ('${state.streak}', 'STREAK'),
+                    (
+                      '${state.savedReadings.length + state.savedHymns.length}',
+                      'SAVED',
+                    ),
+                  ])
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: stat(value, label),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 38),
             OutlinedButton(

@@ -466,12 +466,12 @@ class HymnList extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(6, 2, 24, 0),
           sliver: SliverList.list(
             children: [
-              SizedBox(
-                height: 34,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(left: 4, right: 4),
+              // Both books stay fully visible: they wrap on narrow phones
+              // instead of scrolling one off the edge.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Wrap(
+                  runSpacing: 8,
                   children: [
                     for (final b in HymnBook.values)
                       FilterPill(

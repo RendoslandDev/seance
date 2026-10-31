@@ -42,7 +42,7 @@ class AppUser {
   }
 
   String get subtitle => isGuest
-      ? 'Guest · saved on this device'
+      ? 'Saved on this device'
       : (provider == 'Phone'
             ? 'Signed in with your phone number'
             : 'Signed in with $provider');
