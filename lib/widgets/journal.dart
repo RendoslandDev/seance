@@ -121,7 +121,9 @@ Future<void> showJournalComposer(
                       foregroundColor: Palette.textHi,
                       side: BorderSide(color: Palette.borderStrong),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 13),
+                        horizontal: 30,
+                        vertical: 13,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -190,8 +192,10 @@ class JournalView extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Palette.textHi,
                 side: BorderSide(color: Palette.borderStrong),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -256,8 +260,10 @@ class _JournalEntryCard extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Palette.bg1,
-        title: Text('Delete reflection?',
-            style: TextStyle(fontFamily: AppType.serif, color: Palette.textHi)),
+        title: Text(
+          'Delete reflection?',
+          style: TextStyle(fontFamily: AppType.serif, color: Palette.textHi),
+        ),
         content: Text('This cannot be undone.', style: AppType.cardBody),
         actions: [
           TextButton(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -17,6 +18,7 @@ class NotificationService {
   static bool _ready = false;
 
   static Future<void> init() async {
+    if (kIsWeb) return; // scheduled local notifications are native-only
     tzdata.initializeTimeZones();
     try {
       final local = await FlutterTimezone.getLocalTimezone();
@@ -32,21 +34,28 @@ class NotificationService {
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    await _plugin.initialize(
-      settings: const InitializationSettings(android: android, iOS: darwin),
-    );
-    _ready = true;
+    try {
+      await _plugin.initialize(
+        settings: const InitializationSettings(android: android, iOS: darwin),
+      );
+      _ready = true;
+    } catch (_) {
+      // Unsupported platform (e.g. desktop) → reminders stay off.
+    }
   }
 
   /// Ask the user to allow notifications (Android 13+ and iOS).
   static Future<void> requestPermissions() async {
+    if (!_ready) return;
     await _plugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.requestNotificationsPermission();
     await _plugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
+          IOSFlutterLocalNotificationsPlugin
+        >()
         ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
@@ -57,8 +66,7 @@ class NotificationService {
       android: AndroidNotificationDetails(
         _channelId,
         _channelName,
-        channelDescription:
-            'A fresh séance reading at the start of each week.',
+        channelDescription: 'A fresh séance reading at the start of each week.',
         importance: Importance.defaultImportance,
         priority: Priority.defaultPriority,
       ),

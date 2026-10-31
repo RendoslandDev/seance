@@ -32,12 +32,12 @@ In the **ReadingWidget** target ▸ **Build Settings**:
 The widget reads the data the app writes through a shared App Group.
 
 1. Select the **Runner** target ▸ **Signing & Capabilities** ▸ **+ Capability**
-   ▸ **App Groups**. Add `group.com.example.seance`.
+   ▸ **App Groups**. Add `group.com.rendosland.seance`.
    (`ios/Runner/Runner.entitlements` already declares it; if Runner had no
    entitlements file before, set *Code Signing Entitlements* →
    `Runner/Runner.entitlements`.)
 2. Select the **ReadingWidget** target ▸ **Signing & Capabilities** ▸ App Groups
-   ▸ add the same `group.com.example.seance`.
+   ▸ add the same `group.com.rendosland.seance`.
 
 > If you change the app's bundle id, update the group id in three places:
 > this entitlements pair, `ReadingWidget.swift` (`appGroupId`), and

@@ -1,4 +1,4 @@
-package com.example.seance
+package com.rendosland.seance
 
 import android.appwidget.AppWidgetManager
 import android.content.Context

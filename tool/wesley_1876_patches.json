@@ -1,0 +1,33 @@
+{
+  "_note": "Hymns whose CCEL pages are empty, transcribed from the 1877 printing scanned at https://archive.org/details/collectionofhymn0000wesl_e2w4 (OCR errors corrected by hand).",
+  "hymns": [
+    {
+      "number": 501,
+      "firstLine": "Jesus, great Shepherd of the sheep",
+      "meter": "C.M.",
+      "note": null,
+      "verses": [
+        "Jesus, great Shepherd of the sheep,\nTo thee for help we fly:\nThy little flock in safety keep;\nFor O! the wolf is nigh.",
+        "He comes, of hellish malice full,\nTo scatter, tear, and slay;\nHe seizes every straggling soul,\nAs his own lawful prey.",
+        "Us into thy protection take,\nAnd gather with thy arm;\nUnless the fold we first forsake,\nThe wolf can never harm.",
+        "We laugh to scorn his cruel power,\nWhile by our Shepherd's side;\nThe sheep he never can devour,\nUnless he first divide.",
+        "O do not suffer him to part\nThe souls that here agree;\nBut make us of one mind and heart,\nAnd keep us one in thee!",
+        "Together let us sweetly live,\nTogether let us die;\nAnd each a starry crown receive,\nAnd reign above the sky."
+      ]
+    },
+    {
+      "number": 829,
+      "firstLine": "Christian! seek not yet repose",
+      "meter": "7 7 7 3",
+      "note": "“Watch and pray.” Mark xiii. 33.",
+      "verses": [
+        "Christian! seek not yet repose,\nCast thy dreams of ease away;\nThou art in the midst of foes;\nWatch and pray.",
+        "Principalities and powers,\nMustering their unseen array,\nWait for thy unguarded hours;\nWatch and pray.",
+        "Gird thy heavenly armour on,\nWear it ever night and day;\nAmbushed lies the evil one;\nWatch and pray.",
+        "Hear the victors who o'ercame;\nStill they mark each warrior's way;\nAll with one sweet voice exclaim,\nWatch and pray.",
+        "Hear, above all, hear thy Lord,\nHim thou lovest to obey;\nHide within thy heart his word;\nWatch and pray.",
+        "Watch, as if on that alone\nHung the issue of the day;\nPray that help may be sent down;\nWatch and pray."
+      ]
+    }
+  ]
+}

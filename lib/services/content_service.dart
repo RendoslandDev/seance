@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../models.dart';
@@ -12,7 +13,7 @@ class ContentService {
   /// between cases. Production leaves this enabled.
   static bool networkEnabled = true;
 
-  static const List<String> _topics = [
+  static const List<String> _pool = [
     'Meditation',
     'Mindfulness',
     'Equanimity',
@@ -21,10 +22,47 @@ class ContentService {
     'Stoicism',
     'Sleep',
     'Compassion',
+    'Contemplation',
+    'Solitude',
+    'Silence',
+    'Patience',
+    'Humility',
+    'Forgiveness',
+    'Lectio Divina',
+    'Prayer',
+    'Sabbath',
+    'Walking meditation',
+    'Yoga nidra',
+    'Metta',
+    'Wabi-sabi',
+    'Hesychasm',
+    'Christian meditation',
+    'Desert Fathers',
+    'Ikigai',
+    'Flow (psychology)',
+    'Self-compassion',
+    'Relaxation technique',
+    'Psalms',
+    'Spiritual direction',
   ];
 
-  Future<List<Reading>> fetchReadings() async {
+  static const int _perDay = 8;
+
+  /// Today's topics: a window over [_pool] that advances every day, so the
+  /// library refreshes daily and every reader sees the same set on a given day.
+  static List<String> topicsFor(DateTime day) {
+    final epochDay =
+        DateTime.utc(day.year, day.month, day.day).millisecondsSinceEpoch ~/
+        Duration.millisecondsPerDay;
+    final start = (epochDay * 3) % _pool.length;
+    return [
+      for (var i = 0; i < _perDay; i++) _pool[(start + i) % _pool.length],
+    ];
+  }
+
+  Future<List<Reading>> fetchReadings(DateTime day) async {
     if (!networkEnabled) return const <Reading>[];
+    final topics = topicsFor(day);
     final uri = Uri.https('en.wikipedia.org', '/w/api.php', {
       'format': 'json',
       'formatversion': '2',
@@ -36,14 +74,15 @@ class ContentService {
       'piprop': 'thumbnail',
       'pithumbsize': '800',
       'redirects': '1',
-      'titles': _topics.join('|'),
+      'titles': topics.join('|'),
       'origin': '*',
     });
 
+    // Browsers set their own User-Agent; a custom header would also force a
+    // CORS preflight, so only native builds identify themselves.
     final res = await http
-        .get(uri, headers: {'User-Agent': 'seance-app/1.0'}).timeout(
-      const Duration(seconds: 8),
-    );
+        .get(uri, headers: kIsWeb ? null : {'User-Agent': 'seance-app/1.0'})
+        .timeout(const Duration(seconds: 8));
     if (res.statusCode != 200) {
       throw Exception('HTTP ${res.statusCode}');
     }
@@ -70,7 +109,7 @@ class ContentService {
     }
 
     final ordered = <Reading>[];
-    for (final t in _topics) {
+    for (final t in topics) {
       final r = byTitle.remove(t);
       if (r != null) ordered.add(r);
     }

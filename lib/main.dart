@@ -5,8 +5,10 @@ import 'auth.dart';
 import 'models.dart';
 import 'screens/login_screen.dart';
 import 'services/notification_service.dart';
+import 'services/progress_store.dart';
 import 'services/widget_service.dart';
 import 'theme.dart';
+import 'widgets/account.dart';
 import 'widgets/hero_card.dart';
 import 'widgets/journal.dart';
 import 'widgets/side_nav.dart';
@@ -18,6 +20,8 @@ import 'widgets/weeks_panel.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  // Accounts + live sync (no-op when this build carries no Firebase config).
+  await AuthController.initFirebase();
   // Wire up the home-screen widget bridge + weekly-reading notifications.
   await WidgetService.init();
   await NotificationService.init();
@@ -68,15 +72,32 @@ class _SeanceRootState extends State<SeanceRoot> {
   final AuthController _auth = AuthController();
   final AppState _state = AppState();
 
+  String? _attachedUid;
+
   @override
   void initState() {
     super.initState();
+    _auth.addListener(_syncStore);
     _auth.restore();
-    _state.restoreJournal();
+  }
+
+  /// Point [_state] at the signed-in member's data whenever the member changes.
+  void _syncStore() {
+    final user = _auth.user;
+    if (user?.uid == _attachedUid) return;
+    _attachedUid = user?.uid;
+    if (user == null) {
+      _state.detach();
+    } else if (user.isGuest || !AuthController.cloudEnabled) {
+      _state.attach(LocalProgressStore());
+    } else {
+      _state.attach(CloudProgressStore(user.uid));
+    }
   }
 
   @override
   void dispose() {
+    _auth.removeListener(_syncStore);
     _auth.dispose();
     _state.dispose();
     super.dispose();
@@ -156,9 +177,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String get _greeting {
     final h = DateTime.now().hour;
-    if (h < 12) return "Let's begin your morning";
-    if (h < 18) return "Let's begin your afternoon";
-    return "Let's begin your evening";
+    final part = h < 12 ? 'morning' : (h < 18 ? 'afternoon' : 'evening');
+    final user = widget.auth.user;
+    final first = user?.firstName;
+    final name = first == null ? '' : ', $first';
+    return "Let's begin your $part$name";
+  }
+
+  void _toggle(Session s) {
+    if (_state.toggle(s)) return;
+    final d = _state.day;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Palette.bg1,
+          content: Text(
+            'This practice opens on ${d.weekday} ${d.dayNumber}.',
+            style: const TextStyle(color: Palette.textHi),
+          ),
+        ),
+      );
   }
 
   void _begin() {
@@ -178,18 +218,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _reflect(Session s) => showJournalComposer(
-        context,
-        _state,
-        sessionTitle: s.title,
-        dayNumber: _state.day.dayNumber,
-      );
+    context,
+    _state,
+    sessionTitle: s.title,
+    dayNumber: _state.day.dayNumber,
+  );
 
   Widget _tab(int index) => TabView(
-        index: index,
-        state: _state,
-        user: widget.auth.user,
-        onSignOut: widget.auth.signOut,
-      );
+    index: index,
+    state: _state,
+    user: widget.auth.user,
+    onSignOut: widget.auth.signOut,
+    onDeleteAccount: () => deleteAccountFlow(context, widget.auth, _state),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _state.nav == 0
                       ? Timeline(
                           day: _state.day,
-                          onToggle: _state.toggle,
+                          onToggle: _toggle,
                           onReflect: _reflect,
                         )
                       : _tab(_state.nav),
@@ -343,7 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 24),
         Timeline(
           day: _state.day,
-          onToggle: _state.toggle,
+          onToggle: _toggle,
           onReflect: _reflect,
           padding: EdgeInsets.zero,
           shrinkWrap: true,

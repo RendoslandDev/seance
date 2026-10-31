@@ -4,6 +4,7 @@ import '../theme.dart';
 const List<IconData> kNavIcons = [
   Icons.home_filled,
   Icons.auto_stories_outlined,
+  Icons.menu_book_outlined,
   Icons.self_improvement_outlined,
   Icons.bookmark_border,
   Icons.edit_note,
@@ -13,6 +14,7 @@ const List<IconData> kNavIcons = [
 const List<String> kNavLabels = [
   'Today',
   'Library',
+  'Bible',
   'Journey',
   'Saved',
   'Journal',

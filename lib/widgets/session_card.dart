@@ -91,11 +91,8 @@ class _Thumb extends StatelessWidget {
           width: 88,
           height: 66,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Container(
-            width: 88,
-            height: 66,
-            color: Palette.glow,
-          ),
+          errorBuilder: (_, _, _) =>
+              Container(width: 88, height: 66, color: Palette.glow),
         ),
       ),
     );
@@ -139,7 +136,11 @@ class SessionCard extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Icon(Icons.edit_outlined, size: 19, color: Palette.textLow),
+              child: Icon(
+                Icons.edit_outlined,
+                size: 19,
+                color: Palette.textLow,
+              ),
             ),
           ),
           const SizedBox(width: 6),

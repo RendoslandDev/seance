@@ -104,7 +104,9 @@ class _HeroCardState extends State<HeroCard> {
                     const SizedBox(height: 12),
                     Text(
                       w.title,
-                      style: AppType.display.copyWith(fontSize: widget.titleSize),
+                      style: AppType.display.copyWith(
+                        fontSize: widget.titleSize,
+                      ),
                     ),
                   ],
                 ),

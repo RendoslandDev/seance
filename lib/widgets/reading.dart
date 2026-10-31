@@ -31,12 +31,12 @@ class GrayImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget fallback() => Container(
-          width: width,
-          height: height,
-          color: Palette.glow,
-          alignment: Alignment.center,
-          child: Icon(Icons.spa_outlined, color: Palette.textLow, size: 22),
-        );
+      width: width,
+      height: height,
+      color: Palette.glow,
+      alignment: Alignment.center,
+      child: Icon(Icons.spa_outlined, color: Palette.textLow, size: 22),
+    );
 
     final path = reading.image;
     if (path == null) return fallback();
@@ -98,9 +98,9 @@ class _LibraryViewState extends State<LibraryView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _BigTitle('Library'),
+              const BigTitle('Library'),
               const SizedBox(height: 14),
-              _Segmented(
+              Segmented(
                 labels: const ['Readings', 'Hymns'],
                 value: _segment,
                 onChanged: (v) => setState(() => _segment = v),
@@ -118,8 +118,8 @@ class _LibraryViewState extends State<LibraryView> {
   }
 }
 
-class _BigTitle extends StatelessWidget {
-  const _BigTitle(this.text);
+class BigTitle extends StatelessWidget {
+  const BigTitle(this.text, {super.key});
   final String text;
   @override
   Widget build(BuildContext context) {
@@ -136,8 +136,9 @@ class _BigTitle extends StatelessWidget {
   }
 }
 
-class _Segmented extends StatelessWidget {
-  const _Segmented({
+class Segmented extends StatelessWidget {
+  const Segmented({
+    super.key,
     required this.labels,
     required this.value,
     required this.onChanged,
@@ -168,8 +169,9 @@ class _Segmented extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 11),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color:
-                        value == i ? Palette.surfaceStrong : Colors.transparent,
+                    color: value == i
+                        ? Palette.surfaceStrong
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -335,9 +337,13 @@ class HymnCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final saved = state.isHymnSaved(hymn);
-    final meta =
-        '${hymn.tradition.label.toUpperCase()} · ${hymn.verseCount} VERSES'
-        '${hymn.hymnalRef != null ? ' · ${hymn.hymnalRef}' : ''}';
+    final meta = hymn.number != null
+        ? [
+            if (hymn.meter != null) hymn.meter!,
+            '${hymn.verseCount} VERSES',
+          ].join(' · ')
+        : '${hymn.tradition.label.toUpperCase()} · ${hymn.verseCount} VERSES'
+              '${hymn.hymnalRef != null ? ' · ${hymn.hymnalRef}' : ''}';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -371,8 +377,21 @@ class HymnCard extends StatelessWidget {
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(Icons.music_note,
-                      color: Palette.textLow, size: 24),
+                  child: hymn.number != null
+                      ? Text(
+                          '${hymn.number}',
+                          style: TextStyle(
+                            fontFamily: AppType.serif,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                            color: Palette.textMid,
+                          ),
+                        )
+                      : Icon(
+                          Icons.music_note,
+                          color: Palette.textLow,
+                          size: 24,
+                        ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -421,95 +440,194 @@ class HymnList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final book = state.hymnBook;
     final hymns = state.visibleHymns;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(6, 2, 24, 40),
+    final browsing = book == HymnBook.wesley && state.hymnQuery.trim().isEmpty;
+
+    // Flatten into rows: a section heading wherever a new section begins
+    // (only while browsing the full book in order), then the hymn itself.
+    final rows = <Object>[];
+    HymnSection? current;
+    for (final h in hymns) {
+      if (browsing && h.number != null) {
+        final s = state.sectionFor(h.number!);
+        if (s != null && !identical(s, current)) {
+          rows.add(s);
+          current = s;
+        }
+      }
+      rows.add(h);
+    }
+
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 14),
-          child: Text(
-            'Hymns across the world — Wesley, Reformed, psalms and more.',
-            style: AppType.cardBody,
-          ),
-        ),
-        SizedBox(
-          height: 34,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(left: 4, right: 4),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(6, 2, 24, 0),
+          sliver: SliverList.list(
             children: [
-              _FilterChip(
-                label: 'All',
-                selected: state.hymnFilter == null,
-                onTap: () => state.setHymnFilter(null),
+              SizedBox(
+                height: 34,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(left: 4, right: 4),
+                  children: [
+                    for (final b in HymnBook.values)
+                      FilterPill(
+                        label: b.label,
+                        selected: book == b,
+                        onTap: () => state.setHymnBook(b),
+                      ),
+                  ],
+                ),
               ),
-              for (final t in HymnTradition.values)
-                _FilterChip(
-                  label: t.label,
-                  selected: state.hymnFilter == t,
-                  onTap: () => state.setHymnFilter(t),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 14),
+                child: Text(
+                  book == HymnBook.wesley
+                      ? 'John Wesley’s Collection of Hymns for the Use of the '
+                            'People Called Methodists — the complete book, '
+                            '${_thousands(state.hymnsIn(HymnBook.wesley).length)} '
+                            'hymns.'
+                      : 'Hymns across the world — Wesley, Reformed, psalms '
+                            'and more.',
+                  style: AppType.cardBody,
+                ),
+              ),
+              if (book == HymnBook.selected) ...[
+                SizedBox(
+                  height: 34,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(left: 4, right: 4),
+                    children: [
+                      FilterPill(
+                        label: 'All',
+                        selected: state.hymnFilter == null,
+                        onTap: () => state.setHymnFilter(null),
+                      ),
+                      for (final t in HymnTradition.values)
+                        FilterPill(
+                          label: t.label,
+                          selected: state.hymnFilter == t,
+                          onTap: () => state.setHymnFilter(t),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: TextField(
+                  onChanged: state.setHymnQuery,
+                  style: const TextStyle(color: Palette.textHi, fontSize: 15),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      size: 19,
+                      color: Palette.textLow,
+                    ),
+                    hintText: book == HymnBook.wesley
+                        ? 'Search by number or words'
+                        : 'Search title, first line or author',
+                    hintStyle: TextStyle(color: Palette.textLow, fontSize: 14),
+                    filled: true,
+                    fillColor: Palette.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Palette.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: Palette.borderStrong),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (state.hymnsLoading && hymns.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        color: Palette.textLow,
+                      ),
+                    ),
+                  ),
+                )
+              else if (hymns.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 30, left: 4),
+                  child: Text(
+                    'No hymns match your search.',
+                    style: AppType.cardBody,
+                  ),
                 ),
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: TextField(
-            onChanged: state.setHymnQuery,
-            style: const TextStyle(color: Palette.textHi, fontSize: 15),
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon:
-                  Icon(Icons.search, size: 19, color: Palette.textLow),
-              hintText: 'Search title, first line or author',
-              hintStyle: TextStyle(color: Palette.textLow, fontSize: 14),
-              filled: true,
-              fillColor: Palette.surface,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Palette.border),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Palette.borderStrong),
-              ),
-            ),
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(6, 0, 24, 40),
+          sliver: SliverList.builder(
+            itemCount: rows.length,
+            itemBuilder: (context, i) {
+              final row = rows[i];
+              return row is HymnSection
+                  ? _SectionHeading(section: row)
+                  : HymnCard(hymn: row as Hymn, state: state);
+            },
           ),
         ),
-        const SizedBox(height: 16),
-        if (state.hymnsLoading && hymns.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 30),
-            child: Center(
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.8,
-                  color: Palette.textLow,
-                ),
-              ),
-            ),
-          )
-        else if (hymns.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 30, left: 4),
-            child: Text('No hymns match your search.',
-                style: AppType.cardBody),
-          )
-        else
-          for (final h in hymns) HymnCard(hymn: h, state: state),
       ],
     );
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
+String _thousands(int n) =>
+    n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+$)'), (_) => ',');
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading({required this.section});
+  final HymnSection section;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 14, 4, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (section.part.isNotEmpty)
+            Text(section.part.toUpperCase(), style: AppType.badge),
+          const SizedBox(height: 4),
+          Text(
+            section.title,
+            style: const TextStyle(
+              fontFamily: AppType.serif,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Palette.textHi,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FilterPill extends StatelessWidget {
+  const FilterPill({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -572,7 +690,7 @@ class SavedList extends StatelessWidget {
           children: [
             Icon(Icons.bookmark_border, size: 34, color: Palette.textLow),
             const SizedBox(height: 22),
-            const _BigTitle('Saved'),
+            const BigTitle('Saved'),
             const SizedBox(height: 14),
             Text(
               'Bookmark a reading or hymn and it\nwill be waiting for you here.',
@@ -590,7 +708,7 @@ class SavedList extends StatelessWidget {
       children: [
         const Padding(
           padding: EdgeInsets.only(left: 4, bottom: 18),
-          child: _BigTitle('Saved'),
+          child: BigTitle('Saved'),
         ),
         if (readings.isNotEmpty) ...[
           const _GroupLabel('READINGS'),

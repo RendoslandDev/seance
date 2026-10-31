@@ -20,7 +20,9 @@ class HymnScreen extends StatelessWidget {
           return CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(child: _Header(hymn: hymn, saved: saved, state: state)),
+              SliverToBoxAdapter(
+                child: _Header(hymn: hymn, saved: saved, state: state),
+              ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),

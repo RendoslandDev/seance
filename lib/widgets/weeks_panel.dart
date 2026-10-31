@@ -58,11 +58,13 @@ Future<void> showWeeksPanel(BuildContext context, AppState state) {
                   itemBuilder: (_, i) {
                     final w = AppState.weeks[i];
                     final active = w.number == state.activeWeek.number;
+                    final locked = state.isLocked(w);
                     return _WeekRow(
                       week: w,
                       active: active,
+                      locked: locked,
                       onTap: () {
-                        if (!w.locked) {
+                        if (!locked) {
                           state.selectWeek(w);
                           Navigator.of(ctx).pop();
                         }
@@ -83,11 +85,13 @@ class _WeekRow extends StatelessWidget {
   const _WeekRow({
     required this.week,
     required this.active,
+    required this.locked,
     required this.onTap,
   });
 
   final WeekInfo week;
   final bool active;
+  final bool locked;
   final VoidCallback onTap;
 
   @override
@@ -111,11 +115,8 @@ class _WeekRow extends StatelessWidget {
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => Container(
-                      width: 56,
-                      height: 56,
-                      color: Palette.glow,
-                    ),
+                    errorBuilder: (_, _, _) =>
+                        Container(width: 56, height: 56, color: Palette.glow),
                   ),
                 ),
               ),
@@ -127,7 +128,7 @@ class _WeekRow extends StatelessWidget {
                     Text(
                       'WEEK ${week.number}',
                       style: AppType.badge.copyWith(
-                        color: week.locked ? Palette.textLow : Palette.textMid,
+                        color: locked ? Palette.textLow : Palette.textMid,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -137,13 +138,13 @@ class _WeekRow extends StatelessWidget {
                         fontFamily: AppType.serif,
                         fontSize: 19,
                         fontWeight: FontWeight.w500,
-                        color: week.locked ? Palette.textLow : Palette.textHi,
+                        color: locked ? Palette.textLow : Palette.textHi,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (week.locked)
+              if (locked)
                 Icon(Icons.lock_outline, size: 18, color: Palette.textLow)
               else if (active)
                 Icon(Icons.check_circle, size: 20, color: Palette.textHi),
