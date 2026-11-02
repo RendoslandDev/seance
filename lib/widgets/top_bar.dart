@@ -33,8 +33,11 @@ class WeeksButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.calendar_today_outlined,
-                  size: 14, color: Palette.textMid),
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 14,
+                color: Palette.textMid,
+              ),
               const SizedBox(width: 9),
               Text(
                 'WEEKS',

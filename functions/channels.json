@@ -1,0 +1,20 @@
+{
+  "_note": "YouTube channels for the Watch feed. Edit this list, then redeploy the function and re-run `node functions/feed.js --snapshot`.",
+  "categories": [
+    {"id": "teaching", "label": "Teaching"},
+    {"id": "study", "label": "Study & History"},
+    {"id": "debates", "label": "Debates & Apologetics"}
+  ],
+  "channels": [
+    {"id": "UCVfwlh9XpX2Y_tQfjeln9QA", "name": "BibleProject", "category": "teaching"},
+    {"id": "UCut8939DdQsJI3Gw1ziAc4w", "name": "Ligonier Ministries", "category": "teaching"},
+    {"id": "UCnrFlpro0xfYjz6s5Xa8WWw", "name": "Desiring God", "category": "teaching"},
+    {"id": "UC7u2HaYBKDaLPcWmldxgGEA", "name": "Mike Winger", "category": "study"},
+    {"id": "UCJX2EazMKUqBQV048px2aoA", "name": "Wes Huff", "category": "study"},
+    {"id": "UCadiEsTZ0hNxs5OxwGiyELQ", "name": "Testify", "category": "study"},
+    {"id": "UC0p2OAXVoo9M1Z126B3fe3w", "name": "Premier Unbelievable?", "category": "debates"},
+    {"id": "UCWyWFV9K5Ei0jiTttfnDpXQ", "name": "Reasonable Faith", "category": "debates"},
+    {"id": "UCedYGs_lqq1uNet0u7qlSyQ", "name": "Cross Examined", "category": "debates"},
+    {"id": "UC5qDet6sa6rODi7t6wfpg8g", "name": "InspiringPhilosophy", "category": "debates"}
+  ]
+}

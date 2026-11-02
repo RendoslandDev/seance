@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../auth.dart';
 import '../models.dart';
 import '../theme.dart';
+import '../screens/legal_screen.dart';
+import 'bible.dart';
 import 'journal.dart';
 import 'reading.dart';
 
@@ -22,12 +24,14 @@ class TabView extends StatelessWidget {
     required this.state,
     required this.user,
     required this.onSignOut,
+    required this.onDeleteAccount,
   });
 
   final int index;
   final AppState state;
   final AppUser? user;
   final VoidCallback onSignOut;
+  final VoidCallback onDeleteAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +39,20 @@ class TabView extends StatelessWidget {
       case 1:
         return LibraryView(state: state);
       case 2:
-        return _JourneyView(state: state);
+        return BibleView(state: state);
       case 3:
-        return SavedList(state: state);
+        return _JourneyView(state: state);
       case 4:
-        return JournalView(state: state);
+        return SavedList(state: state);
       case 5:
-        return _ProfileView(state: state, user: user, onSignOut: onSignOut);
+        return JournalView(state: state);
+      case 6:
+        return _ProfileView(
+          state: state,
+          user: user,
+          onSignOut: onSignOut,
+          onDeleteAccount: onDeleteAccount,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -83,81 +94,81 @@ class _JourneyView extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 22),
           child: Text(
-            'Eight weeks toward a steadier center.',
+            '${AppState.weeks.length} weeks toward a steadier center. '
+            'A new week opens every seven days.',
             style: AppType.cardBody,
           ),
         ),
-        for (final w in AppState.weeks)
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: w.number == state.activeWeek.number
-                  ? Palette.surfaceStrong
-                  : Palette.surface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Palette.border),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: w.locked ? null : () => state.selectWeek(w),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
+        for (final w in AppState.weeks) _weekTile(w),
+      ],
+    );
+  }
+
+  Widget _weekTile(WeekInfo w) {
+    final locked = state.isLocked(w);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: w.number == state.activeWeek.number
+            ? Palette.surfaceStrong
+            : Palette.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Palette.border),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: locked ? null : () => state.selectWeek(w),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: ColorFiltered(
+                    colorFilter: const ColorFilter.matrix(_grayscale),
+                    child: Image.asset(
+                      w.image,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          Container(width: 64, height: 64, color: Palette.glow),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: ColorFiltered(
-                          colorFilter: const ColorFilter.matrix(_grayscale),
-                          child: Image.asset(
-                            w.image,
-                            width: 64,
-                            height: 64,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Container(
-                              width: 64,
-                              height: 64,
-                              color: Palette.glow,
-                            ),
-                          ),
+                      Text(
+                        'WEEK ${w.number}',
+                        style: AppType.badge.copyWith(
+                          color: locked ? Palette.textLow : Palette.textMid,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('WEEK ${w.number}',
-                                style: AppType.badge.copyWith(
-                                  color: w.locked
-                                      ? Palette.textLow
-                                      : Palette.textMid,
-                                )),
-                            const SizedBox(height: 4),
-                            Text(
-                              w.title,
-                              style: TextStyle(
-                                fontFamily: AppType.serif,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    w.locked ? Palette.textLow : Palette.textHi,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 4),
+                      Text(
+                        w.title,
+                        style: TextStyle(
+                          fontFamily: AppType.serif,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: locked ? Palette.textLow : Palette.textHi,
                         ),
                       ),
-                      if (w.locked)
-                        Icon(Icons.lock_outline,
-                            size: 18, color: Palette.textLow),
                     ],
                   ),
                 ),
-              ),
+                if (locked)
+                  Icon(Icons.lock_outline, size: 18, color: Palette.textLow),
+              ],
             ),
           ),
-      ],
+        ),
+      ),
     );
   }
 }
@@ -167,33 +178,31 @@ class _ProfileView extends StatelessWidget {
     required this.state,
     required this.user,
     required this.onSignOut,
+    required this.onDeleteAccount,
   });
 
   final AppState state;
   final AppUser? user;
   final VoidCallback onSignOut;
+  final VoidCallback onDeleteAccount;
 
   @override
   Widget build(BuildContext context) {
-    final sessionsDone =
-        state.days.fold<int>(0, (sum, d) => sum + d.completed);
-    final daysActive = state.days.where((d) => d.hasActivity).length;
-
     Widget stat(String value, String label) => Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontFamily: AppType.serif,
-                fontSize: 44,
-                fontWeight: FontWeight.w500,
-                color: Palette.textHi,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(label, style: AppType.badge),
-          ],
-        );
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontFamily: AppType.serif,
+            fontSize: 44,
+            fontWeight: FontWeight.w500,
+            color: Palette.textHi,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: AppType.badge),
+      ],
+    );
 
     return Center(
       child: SingleChildScrollView(
@@ -210,9 +219,8 @@ class _ProfileView extends StatelessWidget {
                 color: Palette.surfaceStrong,
                 border: Border.all(color: Palette.border),
               ),
-              child: user == null
-                  ? Icon(Icons.person_outline,
-                      size: 34, color: Palette.textMid)
+              child: (user == null || user!.initials.isEmpty)
+                  ? Icon(Icons.person_outline, size: 34, color: Palette.textMid)
                   : Text(
                       user!.initials,
                       style: const TextStyle(
@@ -231,16 +239,28 @@ class _ProfileView extends StatelessWidget {
               style: AppType.cardBody,
             ),
             const SizedBox(height: 34),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                stat('$sessionsDone', 'SESSIONS'),
-                const SizedBox(width: 40),
-                stat('${state.savedReadings.length + state.savedHymns.length}',
-                    'SAVED'),
-                const SizedBox(width: 40),
-                stat('$daysActive', 'DAYS'),
-              ],
+            // Evenly spread, and never wider than the screen (small phones).
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Row(
+                children: [
+                  for (final (value, label) in [
+                    ('${state.totalSessions}', 'SESSIONS'),
+                    ('${state.activeDays}', 'DAYS'),
+                    ('${state.streak}', 'STREAK'),
+                    (
+                      '${state.savedReadings.length + state.savedHymns.length}',
+                      'SAVED',
+                    ),
+                  ])
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: stat(value, label),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 38),
             OutlinedButton(
@@ -248,14 +268,41 @@ class _ProfileView extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: Palette.textHi,
                 side: BorderSide(color: Palette.borderStrong),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 13),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 13,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
               child: const Text('Sign out'),
             ),
+            const SizedBox(height: 26),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              children: [
+                TextButton(
+                  onPressed: () => openLegal(context, LegalDoc.privacy),
+                  style: TextButton.styleFrom(foregroundColor: Palette.textMid),
+                  child: const Text('Privacy Policy'),
+                ),
+                TextButton(
+                  onPressed: () => openLegal(context, LegalDoc.terms),
+                  style: TextButton.styleFrom(foregroundColor: Palette.textMid),
+                  child: const Text('Terms of Service'),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: onDeleteAccount,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFE8A598),
+              ),
+              child: const Text('Delete account'),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

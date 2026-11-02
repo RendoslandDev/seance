@@ -3,7 +3,7 @@ import SwiftUI
 
 // Must match WidgetService.appGroupId in lib/services/widget_service.dart and
 // the App Group enabled on BOTH the Runner app and this widget extension.
-private let appGroupId = "group.com.example.seance"
+private let appGroupId = "group.com.rendosland.seance"
 
 struct ReadingEntry: TimelineEntry {
     let date: Date
